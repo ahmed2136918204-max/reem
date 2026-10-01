@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عيد ميلاد سعيد يا ريم ❤️</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo & Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- JS Canvas Confetti for Birthday Explosion -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+        }
+
+        body {
+            background-color: #120309;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* خلفية متدرجة رومانسية */
+        .romantic-bg {
+            background: radial-gradient(circle at center, #3b071e 0%, #1a020d 60%, #0d0107 100%);
+        }
+
+        /* شارات وزخارف ذهبية ورومانسية */
+        .gold-text {
+            background: linear-gradient(135deg, #ffe6a7 0%, #f1c40f 50%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-border {
+            border-color: rgba(241, 196, 15, 0.4);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* انيميشن الاهتزاز عند خطأ كلمة السر */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* تأثير التوهج للقلوب والبطاقات */
+        .glow-effect {
+            box-shadow: 0 0 25px rgba(225, 29, 72, 0.35);
+        }
+
+        /* أنيميشن الحب وإطار القلوب المتحركة للصور */
+        @keyframes heartPulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(225, 29, 72, 0.4), inset 0 0 15px rgba(225, 29, 72, 0.2);
+                border-color: rgba(244, 63, 94, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 35px rgba(244, 63, 94, 0.8), inset 0 0 25px rgba(244, 63, 94, 0.4);
+                border-color: rgba(251, 113, 133, 0.9);
+            }
+        }
+
+        .heart-glow-frame {
+            animation: heartPulseGlow 2.5s infinite ease-in-out;
+        }
+
+        @keyframes floatHeartBadge {
+            0%, 100% { transform: translateY(0px) scale(1) rotate(-3deg); }
+            50% { transform: translateY(-10px) scale(1.1) rotate(5deg); }
+        }
+
+        .float-heart-badge {
+            animation: floatHeartBadge 2.2s ease-in-out infinite;
+        }
+
+        /* تصميم معرض الصور ثلاثي الأبعاد (3D Coverflow Deck) */
+        .perspective-deck {
+            perspective: 1200px;
+        }
+        .deck-card {
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-style: preserve-3d;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+        }
+        .deck-card.active-card {
+            transform: translateX(0) translateZ(0) scale(1) rotateY(0deg);
+            z-index: 30;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .deck-card.prev-card {
+            transform: translateX(-45%) translateZ(-120px) scale(0.85) rotateY(18deg);
+            z-index: 20;
+            opacity: 0.55;
+            cursor: pointer;
+            filter: blur(1px) brightness(0.7);
+        }
+        .deck-card.next-card {
+            transform: translateX(45%) translateZ(-120px) scale(0.85) rotateY(-18deg);
+            z-index: 20;
+            opacity: 0.55;
+            cursor: pointer;
+            filter: blur(1px) brightness(0.7);
+        }
+        .deck-card.far-card {
+            transform: translateY(20px) translateZ(-250px) scale(0.7);
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* شريط التمرير مخصص */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #120309;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e11d48;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="romantic-bg min-h-screen relative flex flex-col justify-between select-none" onclick="initAudioOnFirstClick()">
+
+    <!-- خلفية القلوب المتحركة -->
+    <canvas id="heartCanvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40"></canvas>
+
+    <!-- مشغل الصوت العام الثابت بالمنتصف أعلى الشاشة -->
+    <div class="fixed top-4 left-4 z-50">
+        <button id="music-toggle" onclick="toggleAudio(event)" class="glass-card p-3 rounded-full text-rose-300 hover:text-white border border-rose-500/30 shadow-lg flex items-center justify-center gap-2 px-4 transition-all hover:scale-105 active:scale-95">
+            <i id="music-icon" class="fa-solid fa-music text-rose-400"></i>
+            <span id="music-text" class="text-xs font-bold">الموسيقى</span>
+        </button>
+    </div>
+
+    <!-- 🎵 1. موسيقى واجهة العد التنازلي (هادئة ورومانسية) -->
+    <!-- 💡 لتشغيل أقتيتك الخاصة بالعد التنازلي: ضع ملف MP3 بجوار هذا الملف واستبدل المصدر بـ src="landing_song.mp3" -->
+    <audio id="landing-music" loop preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-wedding-love-114383.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 🎵 2. موسيقى واجهة المفاجأة الرئيسية (Birthday Surprise - Preetam Maer) -->
+    <!-- 💡 ضع ملف MP3 الخاص بـ "Birthday Surprise - Preetam Maer" باسم birthday_surprise.mp3 بجوار الملف -->
+    <audio id="surprise-music" loop preload="auto">
+        <source src="birthday_surprise.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- ==================== الواجهة الأولى: العد التنازلي وكلمة السر ==================== -->
+    <section id="landing-screen" class="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-1000">
+        
+        <!-- عنوان ترحيبي برومانسي -->
+        <div class="text-center mb-8">
+            <span class="inline-block p-3 rounded-full bg-rose-950/60 text-rose-400 mb-3 border border-rose-800/40 animate-pulse">
+                <i class="fa-solid fa-heart text-2xl"></i> ❤️
+            </span>
+            <h1 class="text-3xl md:text-5xl font-black text-rose-100 mb-3 tracking-wide">
+                انتظار لحظة ميلاد أميرتي <span class="gold-text">ريم</span>
+            </h1>
+            <p class="text-rose-300/80 text-sm md:text-base max-w-md mx-auto">
+                كل ثانية تمر تقربنا من أجمل يوم في السنة.. اليوم الذي أشرقت فيه حياتي وجودك.
+            </p>
+        </div>
+
+        <!-- كارت العد التنازلي -->
+        <div id="countdown-container" class="glass-card p-6 md:p-8 rounded-3xl glow-effect w-full max-w-2xl text-center mb-8">
+            <div class="grid grid-cols-4 gap-2 md:gap-4">
+                <div class="flex flex-col p-3 md:p-4 rounded-2xl bg-rose-950/40 border border-rose-800/30">
+                    <span id="days" class="text-2xl md:text-5xl font-bold gold-text">00</span>
+                    <span class="text-xs md:text-sm text-rose-300 mt-1">يوم</span>
+                </div>
+                <div class="flex flex-col p-3 md:p-4 rounded-2xl bg-rose-950/40 border border-rose-800/30">
+                    <span id="hours" class="text-2xl md:text-5xl font-bold gold-text">00</span>
+                    <span class="text-xs md:text-sm text-rose-300 mt-1">ساعة</span>
+                </div>
+                <div class="flex flex-col p-3 md:p-4 rounded-2xl bg-rose-950/40 border border-rose-800/30">
+                    <span id="minutes" class="text-2xl md:text-5xl font-bold gold-text">00</span>
+                    <span class="text-xs md:text-sm text-rose-300 mt-1">دقيقة</span>
+                </div>
+                <div class="flex flex-col p-3 md:p-4 rounded-2xl bg-rose-950/40 border border-rose-800/30">
+                    <span id="seconds" class="text-2xl md:text-5xl font-bold gold-text">00</span>
+                    <span class="text-xs md:text-sm text-rose-300 mt-1">ثانية</span>
+                </div>
+            </div>
+
+            <!-- زر التجربة السريعة (للتجربة المعاينة قبل موعد عيد الميلاد) -->
+            <div class="mt-6 pt-4 border-t border-rose-900/40 flex justify-center items-center gap-2">
+                <button id="demo-unlock-btn" onclick="revealPasswordSection(event)" class="text-xs text-rose-400/70 hover:text-rose-200 underline transition-all flex items-center gap-1">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    (زر المعاينة السريعة لفتح القفل فوراً للتجربة)
+                </button>
+            </div>
+        </div>
+
+        <!-- قسم إدخال كلمة السر -->
+        <div id="password-section" class="hidden glass-card p-6 md:p-8 rounded-3xl w-full max-w-md text-center transition-all duration-500 scale-95 opacity-0">
+            <div class="w-16 h-16 bg-rose-600/20 border border-rose-500/40 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-400 text-2xl">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">أهلاً بكِ يا أميرتي ❤️</h2>
+            <p class="text-rose-300 text-sm mb-6">ادخلي كلمة السر الخاصة بقلبي لفتح مفاجأة عيد ميلادك:</p>
+            
+            <form id="password-form" onsubmit="handlePasswordSubmit(event)" class="space-y-4">
+                <div class="relative">
+                    <input type="password" id="password-input" placeholder="اكتبي كلمة السر هنا..." 
+                        class="w-full px-5 py-3 rounded-xl bg-black/40 border border-rose-800/60 text-white placeholder-rose-400/50 text-center focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30 transition-all text-lg font-bold">
+                </div>
+                
+                <p id="error-message" class="text-rose-400 text-xs hidden flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>كلمة السر غير صحيحة، حاولي مرة أخرى يا ريم!</span>
+                </p>
+
+                <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold shadow-lg hover:shadow-rose-600/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                    افتحي المفاجأة ✨
+                </button>
+            </form>
+        </div>
+
+    </section>
+
+    <!-- ==================== الواجهة الثانية: المفاجأة والمعرض الرومانسي ==================== -->
+    <main id="surprise-screen" class="hidden relative z-10 min-h-screen py-10 px-4 md:px-8 max-w-5xl mx-auto opacity-0 transition-opacity duration-1000">
+
+        <!-- العبارة الرئيسية لتهنئة عيد الميلاد -->
+        <header class="text-center my-8 md:my-12">
+            <div class="inline-block px-4 py-1.5 rounded-full bg-rose-900/40 border border-rose-600/30 text-rose-300 text-sm font-semibold mb-4 animate-bounce">
+                🎉 🎉 يوم خاص لأغلى إنسانة 🎉 🎉
+            </div>
+            <h1 class="text-3xl md:text-6xl font-black text-white leading-tight mb-4">
+                كل سنة وأنتِ طيبة يا <span class="gold-text">أغلى ما في حياتي يا ريم</span> ❤️
+            </h1>
+            <p class="text-rose-200 text-base md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+                في مثل هذا اليوم أشرقت دنيايا بوجودك، وكل عام وأنتِ الحب والراحة والسعادة لقلبي.
+            </p>
+        </header>
+
+        <!-- معرض الصور التفاعلي ثلاثي الأبعاد -->
+        <section class="glass-card rounded-3xl p-4 md:p-8 mb-12 shadow-2xl relative border border-rose-800/40">
+            <h2 class="text-xl md:text-2xl font-bold text-center text-rose-200 mb-8 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-sparkles text-rose-400 animate-pulse"></i>
+                ألبوم الذكريات ثلاثي الأبعاد ❤️
+                <i class="fa-solid fa-sparkles text-rose-400 animate-pulse"></i>
+            </h2>
+
+            <!-- حاوية المعرض ثلاثي الأبعاد -->
+            <div class="relative w-full max-w-3xl mx-auto min-h-[380px] sm:min-h-[460px] md:min-h-[520px] perspective-deck flex items-center justify-center mb-6">
+                
+                <!-- 📸 بطاقة 1 -->
+                <div class="deck-card active-card w-full max-w-lg aspect-[16/10] rounded-2xl overflow-hidden heart-glow-frame bg-rose-950/40 border-2 border-rose-500/50 shadow-2xl cursor-pointer" onclick="goToSlide(0)">
+                    <div class="relative w-full h-full">
+                        <div class="absolute top-3 right-3 z-20 bg-rose-600/80 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full shadow-lg float-heart-badge flex items-center gap-1">
+                            ❤️ ريم القلب
+                        </div>
+                        <img src="1.jpeg"
+                             alt="ذكرى جميلة 1" 
+                             class="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+                             onerror="this.src='https://placehold.co/800x800/3b071e/ffffff?text=صورة+1'">
+                    </div>
+                </div>
+
+                <!-- 📸 بطاقة 2 -->
+                <div class="deck-card next-card w-full max-w-lg aspect-[16/10] rounded-2xl overflow-hidden heart-glow-frame bg-rose-950/40 border-2 border-rose-500/50 shadow-2xl cursor-pointer" onclick="goToSlide(1)">
+                    <div class="relative w-full h-full">
+                        <div class="absolute top-3 right-3 z-20 bg-rose-600/80 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full shadow-lg float-heart-badge flex items-center gap-1">
+                            💖 ضحكتك تنور حياتي
+                        </div>
+                        <img src="5.jpeg" 
+                             alt="ذكرى جميلة 2" 
+                             class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                             onerror="this.src='https://placehold.co/800x800/3b071e/ffffff?text=صورة+2'">
+                    </div>
+                </div>
+
+                <!-- 📸 بطاقة 3 -->
+                <div class="deck-card far-card w-full max-w-lg aspect-[16/10] rounded-2xl overflow-hidden heart-glow-frame bg-rose-950/40 border-2 border-rose-500/50 shadow-2xl cursor-pointer" onclick="goToSlide(2)">
+                    <div class="relative w-full h-full">
+                        <div class="absolute top-3 right-3 z-20 bg-rose-600/80 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full shadow-lg float-heart-badge flex items-center gap-1">
+                            💕 حب العمر كله
+                        </div>
+                        <img src="3.jpeg" 
+                             alt="ذكرى جميلة 3" 
+                             class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                             onerror="this.src='https://placehold.co/800x800/3b071e/ffffff?text=صورة+3'">
+                    </div>
+                </div>
+
+                <!-- 📸 بطاقة 4 -->
+                <div class="deck-card prev-card w-full max-w-lg aspect-[16/10] rounded-2xl overflow-hidden heart-glow-frame bg-rose-950/40 border-2 border-rose-500/50 shadow-2xl cursor-pointer" onclick="goToSlide(3)">
+                    <div class="relative w-full h-full">
+                        <div class="absolute top-3 right-3 z-20 bg-rose-600/80 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full shadow-lg float-heart-badge flex items-center gap-1">
+                            💓 زوجتي الغالية
+                        </div>
+                        <img src="4.jpeg" 
+                             alt="ذكرى جميلة 4" 
+                             class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                             onerror="this.src='https://placehold.co/800x800/3b071e/ffffff?text=صورة+4'">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- بطاقة الرسالة والتعليق الرومانسي المتحرك للبطاقة الحالية -->
+            <div class="glass-card p-6 rounded-2xl max-w-2xl mx-auto border border-rose-700/40 text-center relative overflow-hidden transition-all duration-500">
+                <div class="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-transparent via-rose-500 to-transparent"></div>
+                <span id="slide-tag" class="text-xs text-rose-400 font-bold tracking-widest block uppercase mb-1 transition-opacity duration-300">الذكرى الأولى 🌹</span>
+                <h3 id="slide-title" class="text-2xl font-bold text-white mb-2 transition-opacity duration-300">أجمل بداية في عمري</h3>
+                <p id="slide-desc" class="text-rose-100/90 leading-relaxed text-sm md:text-base transition-opacity duration-300">
+                    أجمل يوم في حياتي هو اليوم اللي عرفتك فيه.. من اللحظة دي وحياتي اتغيرت وبقت مليانة دفء وأمل. كل سنة وأنتِ منورة دنيتي يا ريم.
+                </p>
+            </div>
+
+            <!-- أزرار التنقل التفاعلية -->
+            <button onclick="prevSlide()" class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 md:w-14 md:h-14 rounded-full bg-rose-950/85 border border-rose-500/50 text-rose-200 hover:text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl z-40">
+                <i class="fa-solid fa-chevron-left text-lg"></i>
+            </button>
+            <button onclick="nextSlide()" class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 md:w-14 md:h-14 rounded-full bg-rose-950/85 border border-rose-500/50 text-rose-200 hover:text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl z-40">
+                <i class="fa-solid fa-chevron-right text-lg"></i>
+            </button>
+
+            <!-- مؤشرات الأرقام والنقاط -->
+            <div id="slide-dots" class="flex justify-center gap-2 mt-6">
+                <!-- يتم توليد النقاط تلقائياً بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <!-- قسم بطاقات رسائل الحب الشخصية -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="glass-card p-6 rounded-2xl border border-rose-800/30 text-center hover:border-rose-500/50 transition-all">
+                <div class="w-12 h-12 bg-rose-600/20 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">ملكة قلبي</h3>
+                <p class="text-rose-200/80 text-sm leading-relaxed">
+                    أنتِ مش بس زوجتي، أنتِ حبيبتي وصديقتي وكل حاجة حلوة في حياتي يا ريم.
+                </p>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl border border-rose-800/30 text-center hover:border-rose-500/50 transition-all">
+                <div class="w-12 h-12 bg-rose-600/20 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                    <i class="fa-solid fa-heart-circle-check"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">وعد الأبدية</h3>
+                <p class="text-rose-200/80 text-sm leading-relaxed">
+                    أوعدك أفضل أحبك، وأحافظ عليكي، وأبذل كل جهدي عشان أمنحك السعادة اللي تستحقيها.
+                </p>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl border border-rose-800/30 text-center hover:border-rose-500/50 transition-all">
+                <div class="w-12 h-12 bg-rose-600/20 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                    <i class="fa-solid fa-sparkles"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">أمنيتي الوحيدة</h3>
+                <p class="text-rose-200/80 text-sm leading-relaxed">
+                    أتمنى نفضل سوا في كل عيد ميلاد، ونكبر سوا والحب بينا يزيد كل يوم عن اللي قبله.
+                </p>
+            </div>
+        </section>
+
+        <!-- التوقيع والختام -->
+        <footer class="text-center py-8 border-t border-rose-900/40">
+            <p class="text-rose-300 font-bold text-lg mb-1">
+                صُنع بحب وشغف خصيصاً لأجمل <span class="gold-text">ريم</span> ❤️
+            </p>
+            <p class="text-rose-400/60 text-xs">
+                من زوجك وحبيبك المحب للأبد
+            </p>
+        </footer>
+
+    </main>
+
+    <!-- ==================== JavaScript Code Logic ==================== -->
+    <script>
+        // موعد عيد الميلاد المحدد: 30 أكتوبر 2026 الساعة 00:00
+        const targetDate = new Date('2026-10-30T00:00:00').getTime();
+
+        // كلمة السر الصحيحة
+        const CORRECT_PASSWORD = "ريم";
+
+        let countdownInterval;
+        let activeAudio = null;
+        let isAudioInitiated = false;
+
+        // دالة آمنة لتشغيل الصوت ومنع خطأ AbortError عند الإيقاف المؤقت أو التبديل السريع
+        async function safePlayAudio(audioElement) {
+            if (!audioElement) return;
+            try {
+                // إذا كان الصوت يعمل بالفعل، لا داعي لإعادة الطلب
+                if (!audioElement.paused && audioElement.currentTime > 0 && !audioElement.ended) {
+                    return;
+                }
+                const playPromise = audioElement.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                }
+            } catch (err) {
+                // التعامل مع AbortError أو قيود التشغيل التلقائي للمتصفح دون إظهار UnhandledRejection Error
+                if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
+                    console.warn("Audio playback error:", err);
+                }
+            }
+        }
+
+        // دالة آمنة لإيقاف الصوت
+        function safePauseAudio(audioElement) {
+            if (!audioElement) return;
+            try {
+                audioElement.pause();
+            } catch (err) {
+                console.warn("Audio pause error:", err);
+            }
+        }
+
+        // بدء تشغيل الصوت للعد التنازلي عند أول ضغطة أو لمسة في الصفحة
+        function initAudioOnFirstClick() {
+            if (!isAudioInitiated) {
+                isAudioInitiated = true;
+                const surpriseScreen = document.getElementById('surprise-screen');
+                // إذا كنا ما نزال في صفحة العد التنازلي، شغل الموسيقى الأولى
+                if (surpriseScreen && surpriseScreen.classList.contains('hidden')) {
+                    playLandingMusic();
+                }
+            }
+        }
+
+        // تشغيل موسيقى صفحة العد التنازلي
+        function playLandingMusic() {
+            const landingAudio = document.getElementById('landing-music');
+            const surpriseAudio = document.getElementById('surprise-music');
+            
+            safePauseAudio(surpriseAudio);
+            if (surpriseAudio) surpriseAudio.currentTime = 0;
+
+            if (landingAudio) {
+                activeAudio = landingAudio;
+                safePlayAudio(landingAudio).then(() => {
+                    if (activeAudio === landingAudio && !landingAudio.paused) {
+                        updateMusicUI(true);
+                    }
+                });
+            }
+        }
+
+        // الانتقال وتغيير الموسيقى فور إدخال كلمة السر
+        function playSurpriseMusic() {
+            const landingAudio = document.getElementById('landing-music');
+            const surpriseAudio = document.getElementById('surprise-music');
+
+            // إيقاف موسيقى العد التنازلي
+            safePauseAudio(landingAudio);
+            if (landingAudio) landingAudio.currentTime = 0;
+
+            // تشغيل أغنية المفاجأة
+            if (surpriseAudio) {
+                activeAudio = surpriseAudio;
+                safePlayAudio(surpriseAudio).then(() => {
+                    if (activeAudio === surpriseAudio && !surpriseAudio.paused) {
+                        updateMusicUI(true);
+                    }
+                });
+            }
+        }
+
+        // التحكم في زر تشغيل وإيقاف الصوت
+        function toggleAudio(e) {
+            if (e) e.stopPropagation();
+
+            if (!activeAudio) {
+                const surpriseScreen = document.getElementById('surprise-screen');
+                if (surpriseScreen && !surpriseScreen.classList.contains('hidden')) {
+                    activeAudio = document.getElementById('surprise-music');
+                } else {
+                    activeAudio = document.getElementById('landing-music');
+                }
+            }
+
+            if (activeAudio.paused) {
+                safePlayAudio(activeAudio).then(() => {
+                    if (!activeAudio.paused) {
+                        updateMusicUI(true);
+                    }
+                });
+            } else {
+                safePauseAudio(activeAudio);
+                updateMusicUI(false);
+            }
+        }
+
+        // تحديث شكل زر الموسيقى
+        function updateMusicUI(isPlaying) {
+            const icon = document.getElementById('music-icon');
+            const text = document.getElementById('music-text');
+            if (icon && text) {
+                if (isPlaying) {
+                    icon.className = 'fa-solid fa-volume-high text-rose-400';
+                    text.innerText = "شغالة";
+                } else {
+                    icon.className = 'fa-solid fa-volume-xmark text-rose-400';
+                    text.innerText = "موقفة";
+                }
+            }
+        }
+
+        // تحديث دالة العد التنازلي
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const difference = targetDate - now;
+
+            if (difference <= 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('days').innerText = "00";
+                document.getElementById('hours').innerText = "00";
+                document.getElementById('minutes').innerText = "00";
+                document.getElementById('seconds').innerText = "00";
+                revealPasswordSection();
+            } else {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                document.getElementById('days').innerText = String(days).padStart(2, '0');
+                document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+            }
+        }
+
+        // إظهار واجهة كلمة السر
+        function revealPasswordSection(e) {
+            if (e) e.stopPropagation();
+            const pwdSection = document.getElementById('password-section');
+            const demoBtn = document.getElementById('demo-unlock-btn');
+            
+            if (demoBtn) demoBtn.style.display = 'none';
+
+            pwdSection.classList.remove('hidden');
+            setTimeout(() => {
+                pwdSection.classList.remove('scale-95', 'opacity-0');
+                pwdSection.classList.add('scale-100', 'opacity-100');
+            }, 50);
+
+            playLandingMusic();
+        }
+
+        // التحقق من كلمة السر والتحويل إلى أغنية المفاجأة
+        function handlePasswordSubmit(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const inputField = document.getElementById('password-input');
+            const errorMessage = document.getElementById('error-message');
+            const userPassword = inputField.value.trim();
+
+            if (userPassword === CORRECT_PASSWORD) {
+                errorMessage.classList.add('hidden');
+                
+                const landingScreen = document.getElementById('landing-screen');
+                landingScreen.style.opacity = '0';
+                landingScreen.style.transform = 'scale(0.95)';
+                
+                setTimeout(() => {
+                    landingScreen.classList.add('hidden');
+                    
+                    const surpriseScreen = document.getElementById('surprise-screen');
+                    surpriseScreen.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        surpriseScreen.classList.remove('opacity-0');
+                        surpriseScreen.classList.add('opacity-100');
+                        
+                        triggerConfetti();
+                        
+                        // 🎵 إيقاف الموسيقى الأولى وتشغيل الأغنية الثانية فوراً عند الدخول
+                        playSurpriseMusic();
+                    }, 100);
+
+                }, 800);
+
+            } else {
+                errorMessage.classList.remove('hidden');
+                const formCard = document.getElementById('password-section');
+                formCard.classList.add('animate-shake');
+                
+                setTimeout(() => {
+                    formCard.classList.remove('animate-shake');
+                }, 500);
+            }
+        }
+
+        // نظام تحريك القلوب في خلفية الشاشة
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Heart {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 100;
+                this.size = Math.random() * 15 + 8;
+                this.speedY = Math.random() * 1.5 + 0.5;
+                this.speedX = Math.sin(Math.random() * Math.PI) * 0.8;
+                this.opacity = Math.random() * 0.6 + 0.2;
+                this.color = `hsla(${Math.random() * 30 + 330}, 80%, 60%, ${this.opacity})`;
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < -20) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.beginPath();
+                ctx.fillStyle = this.color;
+                
+                const topCurveHeight = this.size * 0.3;
+                ctx.moveTo(0, topCurveHeight);
+                ctx.bezierCurveTo(0, 0, -this.size / 2, 0, -this.size / 2, topCurveHeight);
+                ctx.bezierCurveTo(-this.size / 2, (this.size + topCurveHeight) / 2, 0, this.size, 0, this.size);
+                ctx.bezierCurveTo(0, this.size, this.size / 2, (this.size + topCurveHeight) / 2, this.size / 2, topCurveHeight);
+                ctx.bezierCurveTo(this.size / 2, 0, 0, 0, 0, topCurveHeight);
+                
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 40; i++) {
+            hearts.push(new Heart());
+        }
+
+        function animateHearts() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hearts.forEach(heart => {
+                heart.update();
+                heart.draw();
+            });
+            requestAnimationFrame(animateHearts);
+        }
+
+        // معرض الصور ثلاثي الأبعاد 3D Coverflow Deck
+        let currentSlide = 0;
+        const cards = document.querySelectorAll('.deck-card');
+
+        const slidesData = [
+            {
+                tag: "الذكرى الأولى 🌹",
+                title: "أجمل بداية في عمري",
+                desc: "أجمل يوم في حياتي هو اليوم اللي عرفتك فيه.. من اللحظة دي وحياتي اتغيرت وبقت مليانة دفء وأمل. كل سنة وأنتِ منورة دنيتي يا ريم."
+            },
+            {
+                tag: "ضحكتك حياتي ✨",
+                title: "روح قلبي وأميرة أيامي",
+                desc: "ضحكتك هي السبب اللي بيخليني أبتسم حتى في أصعب الأيام. ربنا يديمك ليا نعمة وسند وأمان يا أطيب ريم."
+            },
+            {
+                tag: "حب للأبد ❤️",
+                title: "معاكي العمر بيحلو",
+                desc: "معاكي عرفت يعني إيه حب حقيقي، وأني أكون محظوظ بوجود إنسانة زيك جنبي. بحبك النهاردة وبكره ولآخر العمر."
+            },
+            {
+                tag: "عالمي الخاص 🌟",
+                title: "أنتِ كل أملاكي",
+                desc: "كل ثانية وأنتِ معايا هي أكبر هدية من ربنا ليا.. كل سنة وأنتِ طيبة يا ريم يا أطيب وأحلى زوجة في الدنيا."
+            }
+        ];
+
+        function initDots() {
+            const dotsContainer = document.getElementById('slide-dots');
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            cards.forEach((_, index) => {
+                const dot = document.createElement('button');
+                dot.className = `w-3 h-3 rounded-full transition-all ${index === 0 ? 'bg-rose-500 w-8' : 'bg-rose-900/60'}`;
+                dot.onclick = () => goToSlide(index);
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function updateDots() {
+            const dots = document.querySelectorAll('#slide-dots button');
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.className = 'w-8 h-3 rounded-full bg-rose-500 transition-all';
+                } else {
+                    dot.className = 'w-3 h-3 rounded-full bg-rose-900/60 transition-all';
+                }
+            });
+        }
+
+        function updateDeck() {
+            const total = cards.length;
+            cards.forEach((card, index) => {
+                card.className = 'deck-card w-full max-w-lg aspect-[16/10] rounded-2xl overflow-hidden heart-glow-frame bg-rose-950/40 border-2 border-rose-500/50 shadow-2xl cursor-pointer';
+
+                if (index === currentSlide) {
+                    card.classList.add('active-card');
+                } else if (index === (currentSlide + 1) % total) {
+                    card.classList.add('next-card');
+                } else if (index === (currentSlide - 1 + total) % total) {
+                    card.classList.add('prev-card');
+                } else {
+                    card.classList.add('far-card');
+                }
+            });
+
+            const tagElem = document.getElementById('slide-tag');
+            const titleElem = document.getElementById('slide-title');
+            const descElem = document.getElementById('slide-desc');
+
+            if (tagElem && slidesData[currentSlide]) {
+                tagElem.style.opacity = '0';
+                titleElem.style.opacity = '0';
+                descElem.style.opacity = '0';
+
+                setTimeout(() => {
+                    tagElem.innerText = slidesData[currentSlide].tag;
+                    titleElem.innerText = slidesData[currentSlide].title;
+                    descElem.innerText = slidesData[currentSlide].desc;
+
+                    tagElem.style.opacity = '1';
+                    titleElem.style.opacity = '1';
+                    descElem.style.opacity = '1';
+                }, 200);
+            }
+
+            updateDots();
+
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 15,
+                    spread: 40,
+                    origin: { y: 0.7 },
+                    colors: ['#e11d48', '#f43f5e', '#ffffff']
+                });
+            }
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % cards.length;
+            updateDeck();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + cards.length) % cards.length;
+            updateDeck();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateDeck();
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 90,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#e11d48', '#f43f5e', '#fb7185', '#f1c40f']
+                });
+            }
+        }
+
+        // البدء عند تحميل الصفحة
+        window.onload = function () {
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
+            animateHearts();
+            initDots();
+        };
+    </script>
+</body>
+</html>
